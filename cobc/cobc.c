@@ -60,6 +60,7 @@
 
 #include "cobc.h"
 #include "tree.h"
+#include "ast_to_json.h"
 #include "../libcob/coblocal.h"
 
 #include "../libcob/cobgetopt.h"
@@ -117,6 +118,7 @@ enum compile_level {
 #define CB_FLAG_GETOPT_DEPEND_KEEP_MISSING  25
 #define CB_FLAG_GETOPT_DEPEND_ON_THE_SIDE   26
 #define CB_FLAG_GETOPT_GENTABLE             27
+#define CB_FLAG_GETOPT_DUMP_AST             28
 
 /* Info display limits */
 #define	CB_IMSG_SIZE		24
@@ -405,6 +407,8 @@ static char		*cobc_ldflags;		/* -Q / COB_LDFLAGS */
 static char		*cb_depend_target;	/* -MT <target>... */
 static const char       *cb_depend_filename;    /* -MF <file> */
 
+int			cb_dump_ast = 0;
+
 static size_t		cobc_cflags_size;
 static size_t		cobc_libs_size;
 static size_t		cobc_lib_paths_size;
@@ -645,6 +649,7 @@ static const struct option long_options[] = {
 	{"Xref",		CB_NO_ARG, NULL, 'X'},
 	{"use-extfh",		CB_RQ_ARG, NULL, 9},	/* this is used by COBOL-IT; Same is -fcallfh= */
 	{"fdiagnostics-plain-output",	CB_NO_ARG, NULL, '/'},
+	{"fdump-ast",	CB_NO_ARG, NULL, CB_FLAG_GETOPT_DUMP_AST},
 	{"Wall",		CB_NO_ARG, NULL, 'W'},
 	{"Wextra",		CB_NO_ARG, NULL, 'Y'},		/* this option used to be called -W */
 #if 1
@@ -3782,6 +3787,10 @@ process_command_line (const int argc, char **argv)
 				cobc_err_exit (COBC_INV_PAR, "-D");
 			}
 			cb_define_list = p;
+			break;
+		
+		case CB_FLAG_GETOPT_DUMP_AST: /* -fdump-ast */
+			cb_dump_ast = 1;
 			break;
 
 		case CB_FLAG_GETOPT_DEPEND_OUTPUT: /* -M */
@@ -8249,6 +8258,7 @@ process_translate (struct filename *fn)
 	struct local_filename	*lf;
 	int			ret;
 	int			i;
+	int			dump_ast = 1;
 
 	/* Initialize */
 	cb_source_file = NULL;
@@ -8414,6 +8424,11 @@ process_translate (struct filename *fn)
 				cb_insert_common_prog (r, nlp->nested_prog);
 			}
 		}
+	}
+
+	/* Dump AST into a JSON file */
+	if (cb_dump_ast) {
+		dump_ast_as_json(current_program,file_basename(fn->source, ".cob"));
 	}
 
 	/* Translate to C */
