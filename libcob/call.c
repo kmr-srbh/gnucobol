@@ -19,6 +19,7 @@
 */
 
 
+#include "common.h"
 #include "config.h"
 
 #ifndef	_GNU_SOURCE
@@ -1130,6 +1131,27 @@ cob_resolve (const char *name)
 
 	entry = cob_chk_call_path (name, &dirent);
 	p = cob_resolve_internal (entry, dirent, 0, COB_MODULE_TYPE_PROGRAM, 1);
+	if (dirent) {
+		cob_free (dirent);
+	}
+	return p;
+}
+
+void *
+cob_resolve_oo_class (const char *name)
+{
+	void	*p;
+	char	*entry;
+	char	*dirent;
+
+	/* LCOV_EXCL_START */
+	if (unlikely (!cobglobptr)) {
+		cob_fatal_error (COB_FERROR_INITIALIZED);
+	}
+	/* LCOV_EXCL_STOP */
+
+	entry = cob_chk_call_path (name, &dirent);
+	p = cob_resolve_internal (entry, dirent, 0, COB_MODULE_TYPE_CLASS, 1);
 	if (dirent) {
 		cob_free (dirent);
 	}
