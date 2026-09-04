@@ -1357,6 +1357,12 @@ struct cob_func_loc {
 	int			save_num_params;
 };
 
+/* OO Class structure */
+
+struct cob_factory_obj {
+	const char		*class_name;
+};
+
 
 /** File connector **/
 
@@ -1667,7 +1673,6 @@ struct cobjmp_buf {
 
 /* version definition and related functions from common.c */
 #include "version.h"	/* located and installed next to common.h */
-
 /*******************************/
 
 /* Function declarations */
@@ -2092,6 +2097,7 @@ COB_EXPIMP void		cob_set_cancel		(cob_module *);
 COB_EXPIMP int		cob_encode_program_id (const unsigned char * const, unsigned char * const,
 						 const int, const int);
 COB_EXPIMP void		*cob_resolve		(const char *);
+COB_EXPIMP void		*cob_resolve_oo_class		(const char *);
 COB_EXPIMP void		*cob_resolve_cobol	(const char *, const int,
 						 const int);
 COB_EXPIMP void		*cob_resolve_func	(const char *);
@@ -2106,6 +2112,9 @@ COB_EXPIMP void		cob_cancel		(const char *);
 COB_EXPIMP int		cob_call_with_exception_check (const char*, const int, void **);
 COB_EXPIMP int		cob_call		(const char *, const int, void **);
 COB_EXPIMP int		cob_func		(const char *, const int, void **);
+
+/* OO Functions */
+COB_EXPIMP struct cob_factory_obj* cob_load_class (const char* class_name);
 
 #ifndef COB_WITHOUT_JMP
 COB_EXPIMP void		*cob_savenv		(struct cobjmp_buf *);
