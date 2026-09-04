@@ -16,6 +16,15 @@ static unsigned char	*b_31 = NULL;  /* XML-NNAMESPACE-PREFIX */
 static unsigned char	*b_32 = NULL;  /* XML-NTEXT */
 static unsigned char	*b_33 = NULL;  /* XML-TEXT */
 
+/* Module initialization indicator */
+static unsigned int	initialized = 0;
+
+/* Module structure pointer for recursive */
+static cob_module		*module = NULL;
+
+/* Global variable pointer */
+static cob_global		*cob_glob_ptr;
+
 
 /* Call pointers */
 static cob_call_union	func_MYMETHOD;

@@ -18,7 +18,7 @@
 #define  COB_MODULE_TIME		165109
 
 /* Global variables */
-#include "prog2.c.h"
+#include "prog.c.h"
 
 /* Function prototypes */
 
@@ -110,7 +110,8 @@ A_ (const int entry)
   frame_overflow = frame_ptr + 63 - 1;
 
   /* Initialize rest of program */
-  if (unlikely(MyClass_initialized == 0)) {
+  printf("initialized: %d\n", initialized);
+  if (unlikely(A_initialized == 0)) {
   	goto P_initialize;
   }
   P_ret_initialize:
@@ -128,9 +129,7 @@ A_ (const int entry)
 
   /* Line: 7         : Entry     Static class initializer (factory procedure division?) -- MyClassInitializer                : prog2.cob */
   l_2:;
-#line 7 "prog2.cob"
   ENTRY_MYCLASS:	cob_nop ();
-#line 121 "prog2.c"
 
   /* Function exit */
 
@@ -162,6 +161,7 @@ A_ (const int entry)
 
   /* Class initialization */
   P_initialize:
+    printf("initializing parent classes of A\n");
     for (i = 0; i < sizeof(parent_classes)/sizeof(char*); i++) {
       printf ("inherited class: %s\n", parent_classes[i]);
       cob_load_class (parent_classes[i]);
@@ -253,9 +253,7 @@ B_ (const int entry)
 
   /* Line: 7         : Entry     Static class initializer (factory procedure division?) -- MyClassInitializer                : prog2.cob */
   l_2:;
-#line 7 "prog2.cob"
   ENTRY_MYCLASS:	cob_nop ();
-#line 121 "prog2.c"
 
   /* Function exit */
 
@@ -288,6 +286,7 @@ B_ (const int entry)
 
   /* Class initialization */
   P_initialize:
+    printf("initializing parent classes of B\n");
     for (i = 0; i < sizeof(parent_classes)/sizeof(char*); i++) {
       printf ("inherited class: %s\n", parent_classes[i]);
       cob_load_class (parent_classes[i]);
@@ -398,7 +397,7 @@ prog_ (const int entry)
 
   printf("inside prog_\n");
   /* Program local variables */
-  #include "prog2.c.l2.h"
+  #include "prog.c.l2.h"
 
   /* Start of function code */
 
@@ -447,33 +446,23 @@ prog_ (const int entry)
 
   /* Line: 21        : Entry     prog                    : prog2.cob */
   l_5:;
-#line 21 "prog2.cob"
   ENTRY_PROG:	cob_nop ();
-#line 280 "prog2.c"
 
   /* Line: 21        : DISPLAY            : prog2.cob */
-#line 21 "prog2.cob"
   cob_nop ();
-#line 285 "prog2.c"
   /* Function call executed normally after the funcptr has been set */
   // cob_display (0, 1, 1, func_MYMETHOD.funcfld (&cob_dyn_0, 1, (cob_field *)&c_2));
 
   /* Line: 22        : DISPLAY            : prog2.cob */
-#line 22 "prog2.cob"
   cob_nop ();
-#line 291 "prog2.c"
   // cob_display (0, 1, 1, func_MYMETHOD.funcfld (&cob_dyn_1, 1, (cob_field *)&c_3));
 
   /* Line: 23        : MOVE               : prog2.cob */
-#line 23 "prog2.cob"
   cob_nop ();
-#line 297 "prog2.c"
   memcpy (b_36, "98", 2);
 
   /* Line: 24        : DISPLAY            : prog2.cob */
-#line 24 "prog2.cob"
   cob_nop ();
-#line 303 "prog2.c"
   // cob_display (0, 1, 1, func_MYMETHOD.funcfld (&cob_dyn_2, 1, &f_36));
 
   /* Program exit */
@@ -554,18 +543,14 @@ prog_ (const int entry)
 
   /* Initialize WORKING-STORAGE */
   /* initialize field RETURN-CODE */
-#line 11 "register-definition"
   cob_nop ();
-#line 380 "prog2.c"
   {
     const int temp_idx = 0;
     memcpy ((cob_u8_t *)&b_21, &temp_idx, sizeof(temp_idx));
   }
 
   /* initialize field a-var */
-#line 18 "prog2.cob"
   cob_nop ();
-#line 389 "prog2.c"
   memset (b_36, (unsigned char)'0', 2);
 
 
@@ -587,7 +572,6 @@ prog_ (const int entry)
   	cob_fatal_error (COB_FERROR_CANCEL);
   }
     
-  __MyClass_Constructor.funcvoid = NULL;
   // func_MYMETHOD.funcvoid = NULL;
   b_21 = 0;
   cob_module_free (&module);

@@ -41,7 +41,7 @@
 struct cob_factory_obj*
 cob_load_class (const char* class_name) {
     struct cob_factory_obj* class_obj;
-    void* cls;
+    void (*cls) ();
 
     const size_t len = strlen(class_name);
     char* class_name_ = cob_malloc(len + 2);
@@ -52,6 +52,9 @@ cob_load_class (const char* class_name) {
 
     printf ("class_name_: %s\n", class_name_);
     cls = cob_resolve_oo_class (class_name_);
+
+    printf ("calling cls()\n");
+    cls();
 
     class_obj = (struct cob_factory_obj*) cob_malloc (sizeof(struct cob_factory_obj));
     class_obj->class_name = class_name;
