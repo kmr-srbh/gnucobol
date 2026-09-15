@@ -14,7 +14,7 @@ static unsigned int		cob_reference_count = 0;
 static const char		*cob_module_path = NULL;
 
 /* Call pointers */
-static cob_call_union	__MyClass_Constructor;
+static cob_call_union	func_SayHelloFromA;
 
 /* Number of call parameters */
 static int		cob_call_params = 0;

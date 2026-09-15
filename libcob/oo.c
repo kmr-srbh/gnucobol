@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
+#include <strings.h>
 #include <ctype.h>
 
 #ifdef	HAVE_LOCALE_H
@@ -37,6 +38,147 @@
 /* include internal and external libcob definitions, forcing exports */
 #define	COB_LIB_EXPIMP
 // #include "coblocal.h"
+
+static int
+hash_word (const char *word, const cob_u32_t mod)
+{
+	cob_u32_t	result = 0x811c9dc5;
+
+	/* Perform 32-bit FNV1a hash */
+	for (; *word; ++word) {
+		/* CHECKME: all input should be upper-case already, but isn't */
+		result ^= (cob_u32_t) toupper ((unsigned char) *word);
+		result *= (cob_u32_t) 0x1677619;
+	}
+
+	return result % mod;
+}
+
+#define HASHMAP(type, type_struct, word_member)                                 \
+	static struct type_struct **type##_map;                                     \
+	static size_t type##_map_arr_size;                                          \
+	static unsigned int num_##type##s;                                          \
+                                                                                \
+	static void init_##type##_map(void)                                         \
+	{                                                                           \
+		type##_map_arr_size = 512;                                              \
+		num_##type##s = 0;                                                      \
+		type##_map = cob_malloc(type##_map_arr_size * sizeof(void *));          \
+		memset(type##_map, 0, type##_map_arr_size * sizeof(void *));            \
+	}                                                                           \
+                                                                                \
+	static COB_INLINE COB_A_INLINE int type##_hash(const char *word)            \
+	{                                                                           \
+		return hash_word((const cob_c8_t *)word, type##_map_arr_size);          \
+	}                                                                           \
+                                                                                \
+	static COB_INLINE COB_A_INLINE int next_##type##_key(                       \
+		const unsigned int key)                                                 \
+	{                                                                           \
+		if (key < type##_map_arr_size - 1)                                      \
+		{                                                                       \
+			return key + 1;                                                     \
+		}                                                                       \
+		else                                                                    \
+		{                                                                       \
+			return 0;                                                           \
+		}                                                                       \
+	}                                                                           \
+                                                                                \
+	static unsigned int find_key_for_##type(const char *const word)             \
+	{                                                                           \
+		unsigned int key;                                                       \
+                                                                                \
+		for (key = type##_hash(word); /* FIXME: we currently cannot use strcmp  \
+						here instead of strcasecmp. */                          \
+			 type##_map[key] && strcasecmp(type##_map[key]->word_member, word); \
+			 key = next_##type##_key(key))                                      \
+			;                                                                   \
+                                                                                \
+		return key;                                                             \
+	}                                                                           \
+                                                                                \
+	static void realloc_##type##_map(const size_t new_size)                     \
+	{                                                                           \
+		struct type_struct **new_map = cob_malloc(new_size * sizeof(void *));   \
+		struct type_struct **old_map = type##_map;                              \
+		size_t old_size = type##_map_arr_size;                                  \
+		unsigned int i;                                                         \
+		unsigned int key;                                                       \
+                                                                                \
+		type##_map_arr_size = new_size;                                         \
+		type##_map = new_map;                                                   \
+		memset(type##_map, 0, new_size * sizeof(void *));                       \
+                                                                                \
+		for (i = 0; i < old_size; ++i)                                          \
+		{                                                                       \
+			if (old_map[i])                                                     \
+			{                                                                   \
+				key = find_key_for_##type(old_map[i]->word_member);             \
+				type##_map[key] = old_map[i];                                   \
+			}                                                                   \
+		}                                                                       \
+                                                                                \
+		cob_free(old_map);                                                      \
+	}                                                                           \
+                                                                                \
+	static void free_##type##_with_key(const int key)                           \
+	{                                                                           \
+		cob_free(type##_map[key]);                                              \
+		type##_map[key] = NULL;                                                 \
+	}                                                                           \
+                                                                                \
+	static int add_##type##_to_map(struct type_struct* val,                    \
+								   const int overwrite)                         \
+	{                                                                           \
+		unsigned int key;                                                       \
+		int entry_already_there;                                                \
+                                                                                \
+		if (!type##_map)                                                        \
+		{                                                                       \
+			init_##type##_map();                                                \
+		}                                                                       \
+		/*                                                                      \
+		The "- 1" is there so there is always one NULL entry in the             \
+		array. If there is not one and the array is full,                       \
+		find_##type will not terminate when given a word which                  \
+		shares a hash with a different word.                                    \
+		*/                                                                      \
+		if (num_##type##s == type##_map_arr_size - 1)                           \
+		{                                                                       \
+			realloc_##type##_map(type##_map_arr_size * 2);                      \
+		}                                                                       \
+                                                                                \
+		key = find_key_for_##type(val->word_member);                            \
+		entry_already_there = !!type##_map[key];                                \
+		if (entry_already_there)                                                \
+		{                                                                       \
+			if (overwrite)                                                      \
+			{                                                                   \
+				free_##type##_with_key(key);                                    \
+			}                                                                   \
+			else                                                                \
+			{                                                                   \
+				return 1;                                                       \
+			}                                                                   \
+		}                                                                       \
+		else                                                                    \
+		{                                                                       \
+			++num_##type##s;                                                    \
+		}                                                                       \
+                                                                                \
+		type##_map[key] = val;                                                   \
+		return entry_already_there;                                             \
+	}
+
+HASHMAP (factory_obj, cob_factory_obj, class_name)
+
+static struct cob_factory_obj *
+find_factory_obj (const char * const class_name)
+{
+	return factory_obj_map[find_key_for_factory_obj (class_name)];
+}
+
 
 /* Append `str` to `base_str` and return a new string */
 char*
@@ -54,18 +196,11 @@ append_str (const char* base_str, const char* str)
     /* Append `str` */
     strcat (new_str, str);
 
-    new_str[new_str_len + 1] = '\0';
+    new_str[new_str_len] = '\0';
 
     return new_str;
 }
 
-void*
-__class_Base_ (void)
-{
-    /* TODO: Do Base class initialization */
-    printf ("initializing Base class\n");
-    return NULL;
-}
 
 /* Search method name for a particular class */
 int
@@ -77,67 +212,68 @@ cob_get_factory_method (const struct cob_factory_obj* class_ptr)
 struct cob_factory_obj*
 cob_load_class (const char* class_name) 
 {
-    struct cob_factory_obj* class_obj;                /* Class factory object */
+    struct cob_factory_obj* class_obj = NULL;                /* Class factory object */
     void (*class_init) (struct cob_factory_obj*);     /* Class initializer function pointer */
     char* class_name_ = NULL;
     struct cob_factory_obj* parent_classes[] = {};
 
+	if (!factory_obj_map) init_factory_obj_map();
+
     const size_t len = strlen(class_name);
 
-    /* Special case: Built-in `Base` class */
-    if (strcasecmp (class_name, "base") == 0) {
-        /*
-          For `Base` class, append a special qualifier string.
-          This is done to separate from a user-defined function named `Base`. 
-        */
-        class_name_ = "__class_Base_";
-    } else {
+    if (!find_factory_obj (class_name)) {
+        /* TODO: Mangle later */
         class_name_ = append_str (class_name, "_");
-    }
+    
+        printf ("\nClass initializer function: %s\n", class_name_);
+        /* Resolve the class initializer function symbol */
+        class_init = cob_resolve_oo_class (class_name_);
+    
+        printf ("Calling class initializer for: %s\n", class_name);
+    
+        class_obj = (struct cob_factory_obj*) cob_malloc (sizeof(struct cob_factory_obj));
+        class_obj->class_name = class_name;
+    
+        /* Push module stack, save call parameter count */
+        if (cob_module_global_enter (&class_obj->module, &class_obj->cob_glob_ptr, 0, 0, 0)) {
+            return NULL;
+        }
+    
+        class_init (class_obj);
+    
+        class_obj->module_init (class_obj->module);
+    
+        class_obj->module->collating_sequence = NULL;
+        class_obj->module->crt_status = NULL;
+        class_obj->module->cursor_pos = NULL;
+        class_obj->module->xml_code = NULL;
+        class_obj->module->xml_event = NULL;
+        class_obj->module->xml_information = NULL;
+        class_obj->module->xml_namespace = NULL;
+        class_obj->module->xml_namespace_prefix = NULL;
+        class_obj->module->xml_nnamespace = NULL;
+        class_obj->module->xml_nnamespace_prefix = NULL;
+        class_obj->module->xml_ntext = NULL;
+        class_obj->module->xml_text = NULL;
+        class_obj->module->json_code = NULL;
+        class_obj->module->json_status = NULL;
+    
+        class_obj->parent_classes = (struct cob_factory_obj *) cob_malloc (
+            sizeof (struct cob_factory_obj *) * class_obj->parent_class_count);
+    
+        for (int i = 0; i < class_obj->parent_class_count; i++) {
+          parent_classes[i] = cob_load_class(&class_obj->parent_class_names[i]);
+        }
+        class_obj->parent_classes =
+            class_obj->parent_class_count > 0 ? parent_classes[0] : NULL;
 
-    printf ("\nClass initializer function: %s\n", class_name_);
-    /* Resolve the class initializer function symbol */
-    class_init = cob_resolve_oo_class (class_name_);
+        /* Pop module stack */
+        cob_module_leave (class_obj->module);
 
-    printf ("Calling class initializer for: %s\n", class_name);
-
-    class_obj = (struct cob_factory_obj*) cob_malloc (sizeof(struct cob_factory_obj));
-    class_obj->class_name = class_name;
-
-    /* push module stack, save call parameter count */
-    if (cob_module_global_enter (&class_obj->module, &class_obj->cob_glob_ptr, 0, 0, 0)) {
-	    return NULL;
-    }
-
-    class_init (class_obj);
-
-    class_obj->module_init (class_obj->module);
-
-    class_obj->module->collating_sequence = NULL;
-    class_obj->module->crt_status = NULL;
-    class_obj->module->cursor_pos = NULL;
-    class_obj->module->xml_code = NULL;
-    class_obj->module->xml_event = NULL;
-    class_obj->module->xml_information = NULL;
-    class_obj->module->xml_namespace = NULL;
-    class_obj->module->xml_namespace_prefix = NULL;
-    class_obj->module->xml_nnamespace = NULL;
-    class_obj->module->xml_nnamespace_prefix = NULL;
-    class_obj->module->xml_ntext = NULL;
-    class_obj->module->xml_text = NULL;
-    class_obj->module->json_code = NULL;
-    class_obj->module->json_status = NULL;
-
-    class_obj->parent_classes = (struct cob_factory_obj *)cob_malloc(
-        sizeof(struct cob_factory_obj *) * class_obj->parent_class_count);
-
-    for (int i = 0; i < class_obj->parent_class_count; i++) {
-      parent_classes[i] = cob_load_class(&class_obj->parent_class_names[i]);
-    }
-    class_obj->parent_classes = parent_classes[0];
-
-    /* Pop module stack */
-    cob_module_leave (class_obj->module);
+		add_factory_obj_to_map (class_obj, 0);
+    } else {
+		return find_factory_obj (class_name);
+	}
 
     return class_obj;
 }

@@ -5,6 +5,8 @@
 /* GnuCOBOL package date  Jun 15 2026 14:48:00 UTC */
 /* Compile command        cobc -g -Wall prog2.cob */
 
+#include "libcob/common.h"
+#include <assert.h>
 #include <stdio.h>
 #include <string.h> /* for memcpy, memcmp and friends */
 #define  COB_KEYWORD_INLINE inline
@@ -32,6 +34,9 @@ static void		A_module_init (cob_module *module);
 static void		B_module_init (cob_module *module);
 
 /* Functions */
+
+cob_field * SayHelloFromClassA (cob_field **cob_fret, const int cob_pam);
+static cob_field * SayHelloFromClassA_ (const int entry);
 
 static void gc_module_so_init () __attribute__ ((constructor));
 static void gc_module_so_init ()
@@ -181,6 +186,33 @@ static void B_module_init (cob_module *module__)
   module__->module_sources = NULL;
 }
 
+cob_field *
+SayHelloFromClassA (cob_field **cob_fret, const int cob_pam)
+{
+  struct cob_func_loc	*floc;
+
+  /* Save environment */
+  floc = cob_save_func (cob_fret, cob_pam, 0);
+  cob_call_params = cob_get_global_ptr ()->cob_call_params;
+  floc->ret_fld = SayHelloFromClassA_ (0);
+  **cob_fret = *floc->ret_fld;
+
+  /* Restore environment */
+  cob_restore_func (floc);
+  return *cob_fret;
+}
+
+static cob_field *
+SayHelloFromClassA_ (const int entry)
+{
+  /* Class A local variables */
+  #include "A.c.l1.h"
+
+  printf ("\nPrinting from function SayHelloFromClassA...\n");
+  cob_display (0, 1, 1, &f_18);
+  return COB_SET_DATA(f_18, b_18);
+}
+
 /* PROGRAM-ID 'prog' */
 
 /* ENTRY 'prog' */
@@ -259,7 +291,8 @@ prog_ (const int entry)
   /* Print factory data from obj_A_2 */
   cob_display (0, 1, 1, obj_A_2->class_fields[0].class_field);
 
-  
+  func_SayHelloFromA.funcvoid = cob_resolve_func("SayHelloFromClassA");
+  func_SayHelloFromA.funcnull(&cob_dyn_0, 1, NULL);
 
   /* Function call executed normally after the funcptr has been set */
   // cob_display (0, 1, 1, func_MYMETHOD.funcfld (&cob_dyn_0, 1, (cob_field *)&c_2));
@@ -348,6 +381,9 @@ prog_ (const int entry)
   printf ("cob_load_class called for A\n");
   obj_A_1 = cob_load_class ("A");
   obj_A_2 = cob_load_class ("A");
+
+  assert(obj_A_1 == obj_A_2);
+  printf ("Same factory objects for class A...\n");
 
   printf ("\nobj_A->class_name: %s\n", obj_A_1->class_name);
   printf ("obj_A_1->parent_classes->class_name: %s\n",
