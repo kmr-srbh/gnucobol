@@ -1357,35 +1357,38 @@ struct cob_func_loc {
 	int			save_num_params;
 };
 
-/* OO Class structure */
+/* OO Class structure definitions */
 
-struct cob_factory_obj;
 typedef struct __cob_global cob_global;
 
+/* Structure for representing an OO class' factory data */
 struct cob_class_field {
 	const char*		class_field_name;
 	cob_field*		class_field;
 };
 
-struct cob_factory_obj {
-	const char*				class_name;
 
-	int						parent_class_count; /* >=0 */
-	const char*				parent_class_names;
-	struct cob_factory_obj*	parent_classes; 	/* initialized in cob_load_class */
+/* Structure for representing an OO class' factory object */
+typedef struct cob_factory_obj {
+	const char*					class_name;
 
-	int						class_fields_count; 	/* >=0 */
+	int							parent_class_count; /* >=0 */
+	const char*					parent_class_names;
+	struct cob_factory_obj*		parent_classes; 	/* initialized in cob_load_class */
+
+	int							class_fields_count; 	/* >=0 */
 	// struct cob_class_field	class_field_descrs;
-	struct cob_class_field*	class_fields; 		/* initialized in cob_load_class, maybe using fields from parent_classes */
-	
-	void					(*module_init) (cob_module*);
-	cob_module*				module;
-	cob_global*				cob_glob_ptr;
+	struct cob_class_field*		class_fields; 		/* initialized in cob_load_class, maybe using fields from parent_classes */
+	const int					method_indices[];	/* contains func ptr indices for a class */
+
+	// void						(*module_init) (cob_module*);
+	// cob_module*				module;
+	// cob_global*				cob_glob_ptr;
 
 	/* const int		*class_method_count; /\* >=0 *\/ */
 	/* struct cob_class_method	class_method_descrs[]; */
 	/* cob_method		class_methods[]; /\* sort of a vtable, initialized in cob_load_class, maybe using methods from parent_classes *\/ */
-};
+} cob_factory_obj;
 
 
 /** File connector **/
@@ -2138,8 +2141,8 @@ COB_EXPIMP int		cob_call		(const char *, const int, void **);
 COB_EXPIMP int		cob_func		(const char *, const int, void **);
 
 /* OO Functions */
-COB_EXPIMP int cob_get_method (const char*);
-COB_EXPIMP struct cob_factory_obj* cob_load_class (const char*);
+COB_EXPIMP int cob_get_factory_method (const cob_factory_obj*);
+COB_EXPIMP cob_factory_obj* cob_load_class (const char*);
 
 #ifndef COB_WITHOUT_JMP
 COB_EXPIMP void		*cob_savenv		(struct cobjmp_buf *);

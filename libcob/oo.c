@@ -37,7 +37,6 @@
 
 /* include internal and external libcob definitions, forcing exports */
 #define	COB_LIB_EXPIMP
-// #include "coblocal.h"
 
 static int
 hash_word (const char *word, const cob_u32_t mod)
@@ -53,6 +52,17 @@ hash_word (const char *word, const cob_u32_t mod)
 
 	return result % mod;
 }
+
+/*
+	The Hashmap implementation below is same as the one inside
+	`reserved.c` but with a small change in the way key-value
+	pairs are stored. The Hashmap implementation in `reserved.c`
+	allocates new memory and stores a copy of the passed value
+	in the key-value pair. This does not work for our usecase
+	where we want to use `factory_obj_map` as a cache for class
+	factory objects, hence, we store the pointer to the original
+	value directly.
+*/
 
 #define HASHMAP(type, type_struct, word_member)                                 \
 	static struct type_struct **type##_map;                                     \
@@ -173,57 +183,57 @@ hash_word (const char *word, const cob_u32_t mod)
 
 HASHMAP (factory_obj, cob_factory_obj, class_name)
 
-static struct cob_factory_obj *
+static cob_factory_obj *
 find_factory_obj (const char * const class_name)
 {
 	return factory_obj_map[find_key_for_factory_obj (class_name)];
 }
 
-
-/* Append `str` to `base_str` and return a new string */
-char*
-append_str (const char* base_str, const char* str) 
+static void
+print_factory_obj_map (void)
 {
-    const size_t base_str_len = strlen(base_str);
-    const size_t str_len = strlen(str);
-    const size_t new_str_len = base_str_len + str_len;
+    for (size_t i = 0; i < factory_obj_map_arr_size; ++i) {
+        if (factory_obj_map[i]) {
+            printf ("map[%zu]: class_name=%s, address=%p\n",
+                    i,
+                    factory_obj_map[i]->class_name,
+                    (void *) factory_obj_map[i]);
+        }
+    }
 
-    char* new_str = cob_malloc (new_str_len + 1);
-
-    /* Copy `base_str` to `new_str` */
-    memcpy (new_str, base_str, base_str_len);
-    
-    /* Append `str` */
-    strcat (new_str, str);
-
-    new_str[new_str_len] = '\0';
-
-    return new_str;
+    printf ("entries: %u\n", num_factory_objs);
 }
-
 
 /* Search method name for a particular class */
 int
-cob_get_factory_method (const struct cob_factory_obj* class_ptr)
+cob_get_factory_method (const cob_factory_obj* class_ptr)
 {
     return -1; /* TODO */
 }
 
-struct cob_factory_obj*
+cob_factory_obj*
 cob_load_class (const char* class_name) 
 {
-    struct cob_factory_obj* class_obj = NULL;                /* Class factory object */
-    void (*class_init) (struct cob_factory_obj*);     /* Class initializer function pointer */
-    char* class_name_ = NULL;
-    struct cob_factory_obj* parent_classes[] = {};
+	char 					class_name_[COB_SMALL_BUFF];
+    void 					(*class_init) (cob_factory_obj*);
+    cob_factory_obj* 		class_obj = NULL;
+    cob_factory_obj* 		parent_classes[] = {};
+
+    const size_t 			class_name_len = strlen(class_name);
 
 	if (!factory_obj_map) init_factory_obj_map();
 
-    const size_t len = strlen(class_name);
+	class_obj = find_factory_obj (class_name);
+    if (!class_obj) {
+        /* 
+			Class name mangled according to the Itanium C++ ABI:
+				https://itanium-cxx-abi.github.io/cxx-abi/abi.html#mangle.name
 
-    if (!find_factory_obj (class_name)) {
-        /* TODO: Mangle later */
-        class_name_ = append_str (class_name, "_");
+			For unscoped (global) classes, the naming rule is:
+				_Z + N + [length of class name] + [class name] + E
+		*/
+
+		snprintf(class_name_, (size_t)COB_SMALL_MAX, "_ZN%ld%sE", class_name_len, class_name);
     
         printf ("\nClass initializer function: %s\n", class_name_);
         /* Resolve the class initializer function symbol */
@@ -231,35 +241,35 @@ cob_load_class (const char* class_name)
     
         printf ("Calling class initializer for: %s\n", class_name);
     
-        class_obj = (struct cob_factory_obj*) cob_malloc (sizeof(struct cob_factory_obj));
+        class_obj = (cob_factory_obj*) cob_malloc (sizeof(cob_factory_obj));
         class_obj->class_name = class_name;
     
         /* Push module stack, save call parameter count */
-        if (cob_module_global_enter (&class_obj->module, &class_obj->cob_glob_ptr, 0, 0, 0)) {
-            return NULL;
-        }
+        // if (cob_module_global_enter (&class_obj->module, &class_obj->cob_glob_ptr, 0, 0, 0)) {
+        //     return NULL;
+        // }
     
         class_init (class_obj);
     
-        class_obj->module_init (class_obj->module);
+        // class_obj->module_init (class_obj->module);
     
-        class_obj->module->collating_sequence = NULL;
-        class_obj->module->crt_status = NULL;
-        class_obj->module->cursor_pos = NULL;
-        class_obj->module->xml_code = NULL;
-        class_obj->module->xml_event = NULL;
-        class_obj->module->xml_information = NULL;
-        class_obj->module->xml_namespace = NULL;
-        class_obj->module->xml_namespace_prefix = NULL;
-        class_obj->module->xml_nnamespace = NULL;
-        class_obj->module->xml_nnamespace_prefix = NULL;
-        class_obj->module->xml_ntext = NULL;
-        class_obj->module->xml_text = NULL;
-        class_obj->module->json_code = NULL;
-        class_obj->module->json_status = NULL;
+        // class_obj->module->collating_sequence = NULL;
+        // class_obj->module->crt_status = NULL;
+        // class_obj->module->cursor_pos = NULL;
+        // class_obj->module->xml_code = NULL;
+        // class_obj->module->xml_event = NULL;
+        // class_obj->module->xml_information = NULL;
+        // class_obj->module->xml_namespace = NULL;
+        // class_obj->module->xml_namespace_prefix = NULL;
+        // class_obj->module->xml_nnamespace = NULL;
+        // class_obj->module->xml_nnamespace_prefix = NULL;
+        // class_obj->module->xml_ntext = NULL;
+        // class_obj->module->xml_text = NULL;
+        // class_obj->module->json_code = NULL;
+        // class_obj->module->json_status = NULL;
     
-        class_obj->parent_classes = (struct cob_factory_obj *) cob_malloc (
-            sizeof (struct cob_factory_obj *) * class_obj->parent_class_count);
+        class_obj->parent_classes = (cob_factory_obj *) cob_malloc (
+            sizeof (cob_factory_obj *) * class_obj->parent_class_count);
     
         for (int i = 0; i < class_obj->parent_class_count; i++) {
           parent_classes[i] = cob_load_class(&class_obj->parent_class_names[i]);
@@ -268,12 +278,11 @@ cob_load_class (const char* class_name)
             class_obj->parent_class_count > 0 ? parent_classes[0] : NULL;
 
         /* Pop module stack */
-        cob_module_leave (class_obj->module);
+        // cob_module_leave (class_obj->module);
 
 		add_factory_obj_to_map (class_obj, 0);
-    } else {
-		return find_factory_obj (class_name);
-	}
+		print_factory_obj_map ();
+    }
 
     return class_obj;
 }

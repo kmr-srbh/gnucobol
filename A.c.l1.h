@@ -29,7 +29,7 @@ unsigned char	*b_18 = NULL;  /* VAR-OUT */
 
 /* Parent class(es) */
 const int A_parent_class_count = 1;
-const char* A_parent_classes[] = {"B"};
+const char* A_parent_classes[] = {"ClassB"};
 
 /* Method names */
 const char* A_method_names[] = {"A_method"};

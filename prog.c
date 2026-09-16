@@ -24,14 +24,15 @@
 
 /* Function prototypes */
 
-void	A_ (struct cob_factory_obj*);
-void	B_ (struct cob_factory_obj*);
+void	_ZN6ClassAE (cob_factory_obj*);
+void	_ZN6ClassBE (cob_factory_obj*);
 
 COB_EXT_EXPORT int		prog (void);
 static int		prog_ (const int);
 static void		prog_module_init (cob_module *module);
-static void		A_module_init (cob_module *module);
-static void		B_module_init (cob_module *module);
+
+// static void		A_module_init (cob_module *module);
+// static void		B_module_init (cob_module *module);
 
 /* Functions */
 
@@ -44,45 +45,24 @@ static void gc_module_so_init ()
   cob_check_version (COB_SOURCE_FILE, COB_PACKAGE_VERSION, COB_PATCH_LEVEL);
 }
 
-/* CLASS-ID 'MyClass' */
-
-/* ENTRY 'MYCLASS' */
-
-/* Should return a cob_factory object */
-// cob_factory_obj*
-// MYCLASS (void)
-// {
-//   struct cob_func_loc	*floc;
-
-//   /* Save environment */
-//   // floc = cob_save_func (cob_fret, cob_pam, 0);
-//   cob_call_params = cob_get_global_ptr ()->cob_call_params;
-//   floc->ret_fld = MYCLASS_ (0);
-//   // **cob_fret = *floc->ret_fld;
-
-//   /* Restore environment */
-//   cob_restore_func (floc);
-//   /* return reference to a class object below */
-//   return NULL;
-// }
-
-
 
 void
-A_ (struct cob_factory_obj* class_obj)
+_ZN6ClassAE (cob_factory_obj* class_obj)
 {
 /* Class static variables */
 #include "A.c.l1.h"
-  class_obj->module_init = &A_module_init;
+  // class_obj->module_init = &A_module_init;
 
   printf("Initializing Class A\n");
   printf("Initializing parent classes of A\n");
-  class_obj->class_name = "A";
+  class_obj->class_name = "ClassA";
 
   class_obj->parent_class_count = A_parent_class_count;
   class_obj->parent_class_names = A_parent_classes[0];
   class_obj->class_fields_count = A_class_fields_count;
   class_obj->class_fields = &A_class_fields[0];
+
+
 
   /* Initialize WORKING-STORAGE */
   /* initialize field RETURN-CODE */
@@ -93,16 +73,16 @@ A_ (struct cob_factory_obj* class_obj)
 }
 
 void
-B_ (struct cob_factory_obj* class_obj)
+_ZN6ClassBE (cob_factory_obj* class_obj)
 {
 /* Class static variables */
 #include "B.c.l1.h"
 
-  class_obj->module_init = &B_module_init;
+  // class_obj->module_init = &B_module_init;
 
   printf("Initializing Class B\n");
   printf("Initializing parent classes of B\n");
-  class_obj->class_name = "B";
+  class_obj->class_name = "ClassB";
 
   class_obj->parent_class_count = B_parent_class_count;
   class_obj->parent_class_names = B_parent_classes[0];
@@ -118,73 +98,73 @@ B_ (struct cob_factory_obj* class_obj)
 }
 
 
-/* Initialize module structure for A */
-static void A_module_init (cob_module *module__)
-{
-  module__->module_name = "A";
-  module__->module_formatted_date = COB_MODULE_FORMATTED_DATE;
-  module__->module_source = COB_SOURCE_FILE;
-  module__->gc_version = COB_PACKAGE_VERSION;
-  module__->module_cancel.funcptr = NULL;
-  module__->module_ref_count = &cob_reference_count;
-  module__->module_path = &cob_module_path;
-  module__->module_active = 0;
-  module__->module_date = COB_MODULE_DATE;
-  module__->module_time = COB_MODULE_TIME;
-  module__->module_type = 1;
-  module__->module_param_cnt = 0;
-  module__->ebcdic_sign = 0;
-  module__->decimal_point = '.';
-  module__->currency_symbol = '$';
-  module__->numeric_separator = ',';
-  module__->flag_filename_mapping = 1;
-  module__->flag_binary_truncate = 1;
-  module__->flag_pretty_display = 1;
-  module__->flag_host_sign = 0;
-  module__->flag_no_phys_canc = 0;
-  module__->flag_main = 0;
-  module__->flag_fold_call = 0;
-  module__->flag_exit_program = 0;
-  module__->flag_debug_trace = 0;
-  module__->flag_dump_ready = 0;
-  module__->xml_mode = 1;
-  module__->module_stmt = 0;
-  module__->module_sources = NULL;
-}
+// /* Initialize module structure for A */
+// static void A_module_init (cob_module *module__)
+// {
+//   module__->module_name = "A";
+//   module__->module_formatted_date = COB_MODULE_FORMATTED_DATE;
+//   module__->module_source = COB_SOURCE_FILE;
+//   module__->gc_version = COB_PACKAGE_VERSION;
+//   module__->module_cancel.funcptr = NULL;
+//   module__->module_ref_count = &cob_reference_count;
+//   module__->module_path = &cob_module_path;
+//   module__->module_active = 0;
+//   module__->module_date = COB_MODULE_DATE;
+//   module__->module_time = COB_MODULE_TIME;
+//   module__->module_type = 1;
+//   module__->module_param_cnt = 0;
+//   module__->ebcdic_sign = 0;
+//   module__->decimal_point = '.';
+//   module__->currency_symbol = '$';
+//   module__->numeric_separator = ',';
+//   module__->flag_filename_mapping = 1;
+//   module__->flag_binary_truncate = 1;
+//   module__->flag_pretty_display = 1;
+//   module__->flag_host_sign = 0;
+//   module__->flag_no_phys_canc = 0;
+//   module__->flag_main = 0;
+//   module__->flag_fold_call = 0;
+//   module__->flag_exit_program = 0;
+//   module__->flag_debug_trace = 0;
+//   module__->flag_dump_ready = 0;
+//   module__->xml_mode = 1;
+//   module__->module_stmt = 0;
+//   module__->module_sources = NULL;
+// }
 
-/* Initialize module structure for B */
-static void B_module_init (cob_module *module__)
-{
-  module__->module_name = "B";
-  module__->module_formatted_date = COB_MODULE_FORMATTED_DATE;
-  module__->module_source = COB_SOURCE_FILE;
-  module__->gc_version = COB_PACKAGE_VERSION;
-  module__->module_cancel.funcptr = NULL;
-  module__->module_ref_count = &cob_reference_count;
-  module__->module_path = &cob_module_path;
-  module__->module_active = 0;
-  module__->module_date = COB_MODULE_DATE;
-  module__->module_time = COB_MODULE_TIME;
-  module__->module_type = 1;
-  module__->module_param_cnt = 0;
-  module__->ebcdic_sign = 0;
-  module__->decimal_point = '.';
-  module__->currency_symbol = '$';
-  module__->numeric_separator = ',';
-  module__->flag_filename_mapping = 1;
-  module__->flag_binary_truncate = 1;
-  module__->flag_pretty_display = 1;
-  module__->flag_host_sign = 0;
-  module__->flag_no_phys_canc = 0;
-  module__->flag_main = 0;
-  module__->flag_fold_call = 0;
-  module__->flag_exit_program = 0;
-  module__->flag_debug_trace = 0;
-  module__->flag_dump_ready = 0;
-  module__->xml_mode = 1;
-  module__->module_stmt = 0;
-  module__->module_sources = NULL;
-}
+// /* Initialize module structure for B */
+// static void B_module_init (cob_module *module__)
+// {
+//   module__->module_name = "B";
+//   module__->module_formatted_date = COB_MODULE_FORMATTED_DATE;
+//   module__->module_source = COB_SOURCE_FILE;
+//   module__->gc_version = COB_PACKAGE_VERSION;
+//   module__->module_cancel.funcptr = NULL;
+//   module__->module_ref_count = &cob_reference_count;
+//   module__->module_path = &cob_module_path;
+//   module__->module_active = 0;
+//   module__->module_date = COB_MODULE_DATE;
+//   module__->module_time = COB_MODULE_TIME;
+//   module__->module_type = 1;
+//   module__->module_param_cnt = 0;
+//   module__->ebcdic_sign = 0;
+//   module__->decimal_point = '.';
+//   module__->currency_symbol = '$';
+//   module__->numeric_separator = ',';
+//   module__->flag_filename_mapping = 1;
+//   module__->flag_binary_truncate = 1;
+//   module__->flag_pretty_display = 1;
+//   module__->flag_host_sign = 0;
+//   module__->flag_no_phys_canc = 0;
+//   module__->flag_main = 0;
+//   module__->flag_fold_call = 0;
+//   module__->flag_exit_program = 0;
+//   module__->flag_debug_trace = 0;
+//   module__->flag_dump_ready = 0;
+//   module__->xml_mode = 1;
+//   module__->module_stmt = 0;
+//   module__->module_sources = NULL;
+// }
 
 cob_field *
 SayHelloFromClassA (cob_field **cob_fret, const int cob_pam)
@@ -291,23 +271,8 @@ prog_ (const int entry)
   /* Print factory data from obj_A_2 */
   cob_display (0, 1, 1, obj_A_2->class_fields[0].class_field);
 
-  func_SayHelloFromA.funcvoid = cob_resolve_func("SayHelloFromClassA");
-  func_SayHelloFromA.funcnull(&cob_dyn_0, 1, NULL);
-
-  /* Function call executed normally after the funcptr has been set */
-  // cob_display (0, 1, 1, func_MYMETHOD.funcfld (&cob_dyn_0, 1, (cob_field *)&c_2));
-
-  /* Line: 22        : DISPLAY            : prog2.cob */
-  cob_nop ();
-  // cob_display (0, 1, 1, func_MYMETHOD.funcfld (&cob_dyn_1, 1, (cob_field *)&c_3));
-
-  /* Line: 23        : MOVE               : prog2.cob */
-  cob_nop ();
-//   memcpy (b_36, "98", 2);
-
-  /* Line: 24        : DISPLAY            : prog2.cob */
-  cob_nop ();
-  // cob_display (0, 1, 1, func_MYMETHOD.funcfld (&cob_dyn_2, 1, &f_36));
+  // func_SayHelloFromA.funcvoid = cob_resolve_func("SayHelloFromClassA");
+  // func_SayHelloFromA.funcnull(&cob_dyn_0, 1, NULL);
 
   /* Program exit */
 
@@ -379,8 +344,8 @@ prog_ (const int entry)
 
   /* call initializer (cob_load_class) API */
   printf ("cob_load_class called for A\n");
-  obj_A_1 = cob_load_class ("A");
-  obj_A_2 = cob_load_class ("A");
+  obj_A_1 = cob_load_class ("ClassA");
+  obj_A_2 = cob_load_class ("ClassA");
 
   assert(obj_A_1 == obj_A_2);
   printf ("Same factory objects for class A...\n");
