@@ -1362,6 +1362,18 @@ struct cob_func_loc {
 struct cob_factory_obj;
 typedef struct __cob_global cob_global;
 
+/* A list of this is to be computed in cob_load_class based on the definition of
+   the current class and its parents. */
+/* A method lookup will search for the corresponding entry based on method_name
+   (for now) */
+/* Dynamic dispatch of a method consists in searching for the proper `struct
+   cob_resolved_method` (based on method name and current class for now). */
+struct cob_resolved_method {
+	const char		*method_name;
+	const int		((*)class_function_pointer) (int);
+	const int		method_entry_index;
+};
+
 struct cob_class_field {
 	const char*		class_field_name;
 	cob_field*		class_field;

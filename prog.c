@@ -68,29 +68,44 @@ static void gc_module_so_init ()
 
 
 
-void
-A_ (struct cob_factory_obj* class_obj)
-{
-/* Class static variables */
-#include "A.c.l1.h"
-  class_obj->module_init = &A_module_init;
+/* void */
+/* A__factory_object_description_initializer__ (struct cob_factory_obj* class_obj) */
+/* { */
+/* /\* Class static variables *\/ */
+/* #include "A.c.l1.h" */
+/*   /\* class_obj->module_init = &A_module_init; *\/ */
 
-  printf("Initializing Class A\n");
-  printf("Initializing parent classes of A\n");
-  class_obj->class_name = "A";
+/*   /\* printf("Initializing Class A\n"); *\/ */
+/*   /\* printf("Initializing parent classes of A\n"); *\/ */
+/*   /\* class_obj->class_name = "A"; *\/ */
 
-  class_obj->parent_class_count = A_parent_class_count;
-  class_obj->parent_class_names = A_parent_classes[0];
-  class_obj->class_fields_count = A_class_fields_count;
-  class_obj->class_fields = &A_class_fields[0];
+/*   module->class_obj->parent_class_count = A_parent_class_count; */
+/*   module->class_obj->parent_class_names = A_parent_classes[0]; */
+/*   /\* class_obj->class_fields_count = A_class_fields_count; *\/ */
+/*   /\* class_obj->class_fields = &A_class_fields[0]; *\/ */
+/*   module->class_obj->methods = */
+/* 	  { */
+/* 		  { */
+/* 			  "method1", */
+/* 			  0, NULL, */
+/* 			  NULL, */
+/* 			  /\* corresponding entry in A_: *\/ 1, */
+/* 		  }, */
+/* 		  { */
+/* 			  "method2", */
+/* 			  1, {__object_ref__constant_descriptor}, */
+/* 			  __object_ref__constant_descriptor, */
+/* 			  /\* corresponding entry in A_: *\/ 2, */
+/* 		  }, */
+/* 	  }; */
 
-  /* Initialize WORKING-STORAGE */
-  /* initialize field RETURN-CODE */
-  {
-    const int temp_idx = 0;
-    memcpy((cob_u8_t *)&b_2, &temp_idx, sizeof(temp_idx));
-  }
-}
+/*   /\* Initialize WORKING-STORAGE *\/ */
+/*   /\* initialize field RETURN-CODE *\/ */
+/*   { */
+/*     const int temp_idx = 0; */
+/*     memcpy((cob_u8_t *)&b_2, &temp_idx, sizeof(temp_idx)); */
+/*   } */
+/* } */
 
 void
 B_ (struct cob_factory_obj* class_obj)
@@ -224,7 +239,7 @@ prog ()
 }
 
 static int
-prog_ (const int entry)
+A_ (const int entry)
 {
   /* Program local variables */
   #include "prog.c.l2.h"
@@ -269,6 +284,37 @@ prog_ (const int entry)
   cob_reference_count++;
 
   /* Entry dispatch */
+  switch (entry) {
+  0:
+	  goto l_factory_data_initializer;
+  1:
+	  goto l_code_of_method1;
+  2:
+	  goto l_code_of_method2;
+  }
+
+ l_factory_data_initializer:;
+  module->class_obj->parent_class_count = A_parent_class_count;
+  module->class_obj->parent_class_names = A_parent_classes[0];
+  /* class_obj->class_fields_count = A_class_fields_count; */
+  /* class_obj->class_fields = &A_class_fields[0]; */
+  module->class_obj->method_descriptors = {
+	  {
+		  "method1",
+		  /* 0, NULL, */
+		  /* NULL, */
+		  /* corresponding entry in A_: */ 1,
+	  },
+	  {
+		  "method2",
+		  /* 1, {__object_ref__constant_descriptor}, */
+		  /* __object_ref__constant_descriptor, */
+		  /* corresponding entry in A_: */ 2,
+	  },
+  };
+  
+  return 0;
+
   goto l_5;
 
   /* PROCEDURE DIVISION */

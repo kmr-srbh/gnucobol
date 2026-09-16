@@ -14712,7 +14712,7 @@ entry_body:
   {
 	if (current_program->nested_level) {
 		cb_error (_("%s is invalid in nested program"), "ENTRY");
-	} else if (current_program->prog_type == COB_MODULE_TYPE_FUNCTION) {
+	} else if (current_program->prog_type != COB_MODULE_TYPE_PROGRAM) {
 		cb_error (_("%s is invalid in a user FUNCTION"), "ENTRY");
 	} else if (cb_verify (cb_entry_statement, "ENTRY")) {
 		cb_tree call_conv = $1;
