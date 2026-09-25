@@ -24,11 +24,14 @@
 
 /* Function prototypes */
 
-void	_ZN6ClassAE (cob_factory_obj*);
-void	_ZN6ClassBE (cob_factory_obj*);
+COB_EXT_EXPORT int	_ZN6ClassAE (const int);
+COB_EXT_EXPORT int	_ZN6ClassBE (const int);
 
 COB_EXT_EXPORT int		prog (void);
 static int		prog_ (const int);
+
+static void   A_module_init (cob_module *module__);
+static void   B_module_init (cob_module *module__);
 static void		prog_module_init (cob_module *module);
 
 // static void		A_module_init (cob_module *module);
@@ -46,8 +49,8 @@ static void gc_module_so_init ()
 }
 
 
-void
-_ZN6ClassAE (cob_factory_obj* class_obj)
+COB_EXT_EXPORT int
+_ZN6ClassAE (const int entry)
 {
 /* Class static variables */
 #include "A.c.l1.h"
@@ -55,14 +58,64 @@ _ZN6ClassAE (cob_factory_obj* class_obj)
 
   printf("Initializing Class A\n");
   printf("Initializing parent classes of A\n");
-  class_obj->class_name = "ClassA";
 
-  class_obj->parent_class_count = A_parent_class_count;
-  class_obj->parent_class_names = A_parent_classes[0];
-  class_obj->class_fields_count = A_class_fields_count;
-  class_obj->class_fields = &A_class_fields[0];
+  /* Entry dispatch */
+  switch (entry) {
+  case 0:
+	  goto l_factory_data_initializer;
+  // 1:
+	//   goto l_code_of_method1;
+  // 2:
+	//   goto l_code_of_method2;
+  }
 
+ l_factory_data_initializer:;
+   /* Push module stack, save call parameter count */
+  if (cob_module_global_enter (&module, &cob_glob_ptr, 0, entry, 0)) {
+      return -1;
+  }
 
+  A_module_init (module);
+
+  module->collating_sequence = NULL;
+  module->crt_status = NULL;
+  module->cursor_pos = NULL;
+  module->xml_code = NULL;
+  module->xml_event = NULL;
+  module->xml_information = NULL;
+  module->xml_namespace = NULL;
+  module->xml_namespace_prefix = NULL;
+  module->xml_nnamespace = NULL;
+  module->xml_nnamespace_prefix = NULL;
+  module->xml_ntext = NULL;
+  module->xml_text = NULL;
+  module->json_code = NULL;
+  module->json_status = NULL;
+
+  /* 
+    Question: The function `_ZN6ClassAE` is called as `class_init(0)`
+    from inside `cob_load_class()`. `cob_load_class()` is called from
+    `prog_()` which is the program scope and place where we create our
+    factory object. To set values below, we need an initialized
+    `oo_class_factory_obj`, but that is owned by the factory object created
+    inside `prog_()`. How do we access the factory object here?
+  */
+  module->oo_class_factory_obj->parent_class_count = A_parent_class_count;
+  module->oo_class_factory_obj->parent_class_names = A_parent_classes[0];
+  /* class_obj->class_fields_count = A_class_fields_count; */
+  /* class_obj->class_fields = &A_class_fields[0]; */
+  module->oo_class_factory_obj->method_descriptors = method_names;
+  
+  /* Pop module stack */
+  /* 
+    Question: 
+    
+    What is the right time to finally pop the module?
+    Should it be pushed and popped on every method call, or pushed
+    first to stack when the factory object is initialized, and 
+    popped finally before the program exits? 
+  */
+  // cob_module_leave (class_obj->module);
 
   /* Initialize WORKING-STORAGE */
   /* initialize field RETURN-CODE */
@@ -70,10 +123,12 @@ _ZN6ClassAE (cob_factory_obj* class_obj)
     const int temp_idx = 0;
     memcpy((cob_u8_t *)&b_2, &temp_idx, sizeof(temp_idx));
   }
+
+  return 0;
 }
 
-void
-_ZN6ClassBE (cob_factory_obj* class_obj)
+COB_EXT_EXPORT int
+_ZN6ClassBE (const int entry)
 {
 /* Class static variables */
 #include "B.c.l1.h"
@@ -82,12 +137,25 @@ _ZN6ClassBE (cob_factory_obj* class_obj)
 
   printf("Initializing Class B\n");
   printf("Initializing parent classes of B\n");
-  class_obj->class_name = "ClassB";
 
-  class_obj->parent_class_count = B_parent_class_count;
-  class_obj->parent_class_names = B_parent_classes[0];
-  // class_obj->class_field_count = 1;
-  // class_obj->class_fields = A_class_fields;
+    /* Entry dispatch */
+  switch (entry) {
+  case 0:
+	  goto l_factory_data_initializer;
+  // 1:
+	//   goto l_code_of_method1;
+  // 2:
+	//   goto l_code_of_method2;
+  }
+
+ l_factory_data_initializer:;
+  module->oo_class_factory_obj->class_name = "ClassB";
+  module->oo_class_factory_obj->parent_class_count = B_parent_class_count;
+  module->oo_class_factory_obj->parent_class_names = B_parent_classes[0];
+  /* class_obj->class_fields_count = A_class_fields_count; */
+  /* class_obj->class_fields = &A_class_fields[0]; */
+  // module->oo_class_factory_obj->method_descriptors = 
+  
 
   /* Initialize WORKING-STORAGE */
   /* initialize field RETURN-CODE */
@@ -95,76 +163,80 @@ _ZN6ClassBE (cob_factory_obj* class_obj)
     const int temp_idx = 0;
     memcpy((cob_u8_t *)&b_2, &temp_idx, sizeof(temp_idx));
   }
+
+  return 0;
 }
 
 
-// /* Initialize module structure for A */
-// static void A_module_init (cob_module *module__)
-// {
-//   module__->module_name = "A";
-//   module__->module_formatted_date = COB_MODULE_FORMATTED_DATE;
-//   module__->module_source = COB_SOURCE_FILE;
-//   module__->gc_version = COB_PACKAGE_VERSION;
-//   module__->module_cancel.funcptr = NULL;
-//   module__->module_ref_count = &cob_reference_count;
-//   module__->module_path = &cob_module_path;
-//   module__->module_active = 0;
-//   module__->module_date = COB_MODULE_DATE;
-//   module__->module_time = COB_MODULE_TIME;
-//   module__->module_type = 1;
-//   module__->module_param_cnt = 0;
-//   module__->ebcdic_sign = 0;
-//   module__->decimal_point = '.';
-//   module__->currency_symbol = '$';
-//   module__->numeric_separator = ',';
-//   module__->flag_filename_mapping = 1;
-//   module__->flag_binary_truncate = 1;
-//   module__->flag_pretty_display = 1;
-//   module__->flag_host_sign = 0;
-//   module__->flag_no_phys_canc = 0;
-//   module__->flag_main = 0;
-//   module__->flag_fold_call = 0;
-//   module__->flag_exit_program = 0;
-//   module__->flag_debug_trace = 0;
-//   module__->flag_dump_ready = 0;
-//   module__->xml_mode = 1;
-//   module__->module_stmt = 0;
-//   module__->module_sources = NULL;
-// }
+/* Initialize module structure for A */
+static void 
+A_module_init (cob_module *module__)
+{
+  module__->module_name = "A";
+  module__->module_formatted_date = COB_MODULE_FORMATTED_DATE;
+  module__->module_source = COB_SOURCE_FILE;
+  module__->gc_version = COB_PACKAGE_VERSION;
+  module__->module_cancel.funcptr = NULL;
+  module__->module_ref_count = &cob_reference_count;
+  module__->module_path = &cob_module_path;
+  module__->module_active = 0;
+  module__->module_date = COB_MODULE_DATE;
+  module__->module_time = COB_MODULE_TIME;
+  module__->module_type = 1;
+  module__->module_param_cnt = 0;
+  module__->ebcdic_sign = 0;
+  module__->decimal_point = '.';
+  module__->currency_symbol = '$';
+  module__->numeric_separator = ',';
+  module__->flag_filename_mapping = 1;
+  module__->flag_binary_truncate = 1;
+  module__->flag_pretty_display = 1;
+  module__->flag_host_sign = 0;
+  module__->flag_no_phys_canc = 0;
+  module__->flag_main = 0;
+  module__->flag_fold_call = 0;
+  module__->flag_exit_program = 0;
+  module__->flag_debug_trace = 0;
+  module__->flag_dump_ready = 0;
+  module__->xml_mode = 1;
+  module__->module_stmt = 0;
+  module__->module_sources = NULL;
+}
 
-// /* Initialize module structure for B */
-// static void B_module_init (cob_module *module__)
-// {
-//   module__->module_name = "B";
-//   module__->module_formatted_date = COB_MODULE_FORMATTED_DATE;
-//   module__->module_source = COB_SOURCE_FILE;
-//   module__->gc_version = COB_PACKAGE_VERSION;
-//   module__->module_cancel.funcptr = NULL;
-//   module__->module_ref_count = &cob_reference_count;
-//   module__->module_path = &cob_module_path;
-//   module__->module_active = 0;
-//   module__->module_date = COB_MODULE_DATE;
-//   module__->module_time = COB_MODULE_TIME;
-//   module__->module_type = 1;
-//   module__->module_param_cnt = 0;
-//   module__->ebcdic_sign = 0;
-//   module__->decimal_point = '.';
-//   module__->currency_symbol = '$';
-//   module__->numeric_separator = ',';
-//   module__->flag_filename_mapping = 1;
-//   module__->flag_binary_truncate = 1;
-//   module__->flag_pretty_display = 1;
-//   module__->flag_host_sign = 0;
-//   module__->flag_no_phys_canc = 0;
-//   module__->flag_main = 0;
-//   module__->flag_fold_call = 0;
-//   module__->flag_exit_program = 0;
-//   module__->flag_debug_trace = 0;
-//   module__->flag_dump_ready = 0;
-//   module__->xml_mode = 1;
-//   module__->module_stmt = 0;
-//   module__->module_sources = NULL;
-// }
+/* Initialize module structure for B */
+static void 
+B_module_init (cob_module *module__)
+{
+  module__->module_name = "B";
+  module__->module_formatted_date = COB_MODULE_FORMATTED_DATE;
+  module__->module_source = COB_SOURCE_FILE;
+  module__->gc_version = COB_PACKAGE_VERSION;
+  module__->module_cancel.funcptr = NULL;
+  module__->module_ref_count = &cob_reference_count;
+  module__->module_path = &cob_module_path;
+  module__->module_active = 0;
+  module__->module_date = COB_MODULE_DATE;
+  module__->module_time = COB_MODULE_TIME;
+  module__->module_type = 1;
+  module__->module_param_cnt = 0;
+  module__->ebcdic_sign = 0;
+  module__->decimal_point = '.';
+  module__->currency_symbol = '$';
+  module__->numeric_separator = ',';
+  module__->flag_filename_mapping = 1;
+  module__->flag_binary_truncate = 1;
+  module__->flag_pretty_display = 1;
+  module__->flag_host_sign = 0;
+  module__->flag_no_phys_canc = 0;
+  module__->flag_main = 0;
+  module__->flag_fold_call = 0;
+  module__->flag_exit_program = 0;
+  module__->flag_debug_trace = 0;
+  module__->flag_dump_ready = 0;
+  module__->xml_mode = 1;
+  module__->module_stmt = 0;
+  module__->module_sources = NULL;
+}
 
 cob_field *
 SayHelloFromClassA (cob_field **cob_fret, const int cob_pam)

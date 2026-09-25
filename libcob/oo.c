@@ -215,7 +215,7 @@ cob_factory_obj*
 cob_load_class (const char* class_name) 
 {
 	char 					class_name_[COB_SMALL_BUFF];
-    void 					(*class_init) (cob_factory_obj*);
+    static int				(*class_init) (const int);
     cob_factory_obj* 		class_obj = NULL;
     cob_factory_obj* 		parent_classes[] = {};
 
@@ -244,29 +244,7 @@ cob_load_class (const char* class_name)
         class_obj = (cob_factory_obj*) cob_malloc (sizeof(cob_factory_obj));
         class_obj->class_name = class_name;
     
-        /* Push module stack, save call parameter count */
-        // if (cob_module_global_enter (&class_obj->module, &class_obj->cob_glob_ptr, 0, 0, 0)) {
-        //     return NULL;
-        // }
-    
-        class_init (class_obj);
-    
-        // class_obj->module_init (class_obj->module);
-    
-        // class_obj->module->collating_sequence = NULL;
-        // class_obj->module->crt_status = NULL;
-        // class_obj->module->cursor_pos = NULL;
-        // class_obj->module->xml_code = NULL;
-        // class_obj->module->xml_event = NULL;
-        // class_obj->module->xml_information = NULL;
-        // class_obj->module->xml_namespace = NULL;
-        // class_obj->module->xml_namespace_prefix = NULL;
-        // class_obj->module->xml_nnamespace = NULL;
-        // class_obj->module->xml_nnamespace_prefix = NULL;
-        // class_obj->module->xml_ntext = NULL;
-        // class_obj->module->xml_text = NULL;
-        // class_obj->module->json_code = NULL;
-        // class_obj->module->json_status = NULL;
+        class_init (0);
     
         class_obj->parent_classes = (cob_factory_obj *) cob_malloc (
             sizeof (cob_factory_obj *) * class_obj->parent_class_count);
@@ -276,9 +254,6 @@ cob_load_class (const char* class_name)
         }
         class_obj->parent_classes =
             class_obj->parent_class_count > 0 ? parent_classes[0] : NULL;
-
-        /* Pop module stack */
-        // cob_module_leave (class_obj->module);
 
 		add_factory_obj_to_map (class_obj, 0);
 		print_factory_obj_map ();

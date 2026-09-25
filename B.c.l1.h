@@ -8,13 +8,13 @@
 /* Program local variables for 'B' */
 
 /* Module initialization indicator */
-static unsigned int	B_initialized = 0;
+static unsigned int	initialized = 0;
 
 /* Module structure pointer for recursive */
-static cob_module		*B_module = NULL;
+static cob_module		*module = NULL;
 
 /* Global variable pointer */
-static cob_global		*B_cob_glob_ptr;
+static cob_global		*cob_glob_ptr;
 
 
 /* LINKAGE SECTION (Items not referenced by USING clause) */

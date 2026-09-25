@@ -8,13 +8,13 @@
 /* Program local variables for 'A' */
 
 /* Module initialization indicator */
-static unsigned int	A_initialized = 0;
+static unsigned int	initialized = 0;
 
 /* Module structure pointer for recursive */
-static cob_module		*A_module = NULL;
+static cob_module		*module = NULL;
 
 /* Global variable pointer */
-static cob_global		*A_cob_glob_ptr;
+static cob_global		*cob_glob_ptr;
 
 
 /* LINKAGE SECTION (Items not referenced by USING clause) */
@@ -34,6 +34,22 @@ const char* A_parent_classes[] = {"ClassB"};
 /* Method names */
 const char* A_method_names[] = {"A_method"};
 
+const cob_resolved_method method_names[] = {
+    {
+        "method1",
+        NULL,
+        /* 0, NULL, */
+        /* NULL, */
+        /* corresponding entry in A_: */ 1,
+    },
+    {
+        "method2",
+        NULL,
+        /* 1, {__object_ref__constant_descriptor}, */
+        /* __object_ref__constant_descriptor, */
+        /* corresponding entry in A_: */ 2,
+    },
+};
 
 /* Call parameters */
 cob_field		**cob_procedure_params;

@@ -1248,6 +1248,52 @@ typedef struct __cob_screen {
 	int			attr;		/* COB_SCREEN_TYPE_ATTRIBUTE */
 } cob_screen;
 
+/* OO Class structure definitions */
+
+typedef struct __cob_global cob_global;
+
+/* Structure for representing an OO class' factory data */
+typedef struct cob_class_field {
+	const char*		class_field_name;
+	cob_field*		class_field;
+} cob_class_field;
+
+
+/* A list of this is to be computed in cob_load_class based on the definition of
+   the current class and its parents. */
+/* A method lookup will search for the corresponding entry based on method_name
+   (for now) */
+/* Dynamic dispatch of a method consists in searching for the proper `struct
+   cob_resolved_method` (based on method name and current class for now). */
+typedef struct cob_resolved_method {
+	const char		*method_name;
+	const void*		(*class_function_pointer) (int);
+	const int		method_entry_index;
+} cob_resolved_method;
+
+
+/* Structure for representing an OO class' factory object */
+typedef struct cob_factory_obj {
+	const char*					class_name;
+
+	int							parent_class_count; /* >=0 */
+	const char*					parent_class_names;
+	struct cob_factory_obj*		parent_classes; 	/* initialized in cob_load_class */
+
+	int							class_fields_count; 	/* >=0 */
+	// struct cob_class_field	class_field_descrs;
+	cob_class_field*			class_fields; 		/* initialized in cob_load_class, maybe using fields from parent_classes */
+
+	const cob_resolved_method*	method_descriptors;
+	// void						(*module_init) (cob_module*);
+	// cob_module*				module;
+	// cob_global*				cob_glob_ptr;
+
+	/* const int		*class_method_count; /\* >=0 *\/ */
+	/* struct cob_class_method	class_method_descrs[]; */
+	/* cob_method		class_methods[]; /\* sort of a vtable, initialized in cob_load_class, maybe using methods from parent_classes *\/ */
+} cob_factory_obj;
+
 /* Module structure */
 enum cob_module_type {
 	COB_MODULE_TYPE_PROGRAM		= 0,
@@ -1342,6 +1388,8 @@ typedef struct __cob_module {
 	const char		*paragraph_name;		/* name of current active pagagraph */
 	enum cob_statement	statement;		/* statement currently executed */
 
+	cob_factory_obj*	oo_class_factory_obj;
+
 } cob_module;
 
 
@@ -1356,39 +1404,6 @@ struct cob_func_loc {
 	int			save_call_params;
 	int			save_num_params;
 };
-
-/* OO Class structure definitions */
-
-typedef struct __cob_global cob_global;
-
-/* Structure for representing an OO class' factory data */
-struct cob_class_field {
-	const char*		class_field_name;
-	cob_field*		class_field;
-};
-
-
-/* Structure for representing an OO class' factory object */
-typedef struct cob_factory_obj {
-	const char*					class_name;
-
-	int							parent_class_count; /* >=0 */
-	const char*					parent_class_names;
-	struct cob_factory_obj*		parent_classes; 	/* initialized in cob_load_class */
-
-	int							class_fields_count; 	/* >=0 */
-	// struct cob_class_field	class_field_descrs;
-	struct cob_class_field*		class_fields; 		/* initialized in cob_load_class, maybe using fields from parent_classes */
-	const int					method_indices[];	/* contains func ptr indices for a class */
-
-	// void						(*module_init) (cob_module*);
-	// cob_module*				module;
-	// cob_global*				cob_glob_ptr;
-
-	/* const int		*class_method_count; /\* >=0 *\/ */
-	/* struct cob_class_method	class_method_descrs[]; */
-	/* cob_method		class_methods[]; /\* sort of a vtable, initialized in cob_load_class, maybe using methods from parent_classes *\/ */
-} cob_factory_obj;
 
 
 /** File connector **/
