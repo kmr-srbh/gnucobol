@@ -1271,6 +1271,11 @@ typedef struct cob_resolved_method {
 	int				method_entry_index;
 } cob_resolved_method;
 
+/* instance objects */
+struct cob_obj {
+	struct cob_factory_obj *obj_class;
+	cob_u8_t instance_data[];
+};
 
 /* Structure for representing an OO class' factory object */
 typedef struct cob_factory_obj {
@@ -2159,10 +2164,10 @@ COB_EXPIMP int		cob_func		(const char *, const int, void **);
 
 /* OO Functions */
 COB_EXPIMP int cob_get_factory_method (const cob_factory_obj*);
-COB_EXPIMP cob_factory_obj *
-cob_init_factory_obj(const char *class_name, const char *parent_class_names[],
+COB_EXPIMP int
+cob_init_factory_obj(cob_module* module, const char *class_name, const char *parent_class_names[],
                      const int parent_classes_count, cob_resolved_method methods[],
-					int methods_count);
+					int methods_count, cob_class_field class_fields[], const int class_fields_count);
 COB_EXPIMP cob_factory_obj *cob_load_class(const char *);
 
 #ifndef COB_WITHOUT_JMP

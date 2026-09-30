@@ -75,4 +75,3 @@ cob_resolved_method B_methods[] = {
 const int B_method_count = 1;
 
 /* End of fields */
-

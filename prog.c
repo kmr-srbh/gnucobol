@@ -58,7 +58,7 @@ _ZN6ClassAE (const int entry)
 
   /* Entry dispatch */
   switch (entry) {
-  case 0:
+  case -1:
 	  goto l_factory_data_initializer;
   // 1:
 	//   goto l_code_of_method1;
@@ -89,11 +89,12 @@ _ZN6ClassAE (const int entry)
   module->json_code = NULL;
   module->json_status = NULL;
 
-  module->oo_class_factory_obj = cob_init_factory_obj("ClassA", A_parent_classes,
-    A_parent_class_count, A_methods, A_method_count); 
-  
-  module->oo_class_factory_obj->class_fields_count = A_class_fields_count;
-  module->oo_class_factory_obj->class_fields = &A_class_fields[0];
+  if (!cob_init_factory_obj(module, "ClassA", A_parent_classes,
+                            A_parent_class_count, A_methods, A_method_count,
+                            A_class_fields, A_class_fields_count)) {
+    return -1;
+  }
+
   // module->oo_class_factory_obj->method_descriptors = method_names;
   
   
@@ -122,10 +123,10 @@ _ZN6ClassBE (const int entry)
 
   /* Entry dispatch */
   switch (entry) {
-  case 0:
+  case -1:
 	  goto l_factory_data_initializer;
-  // 1:
-	//   goto l_code_of_method1;
+  case 0:
+	  goto l_code_of_A_method_1;
   // 2:
 	//   goto l_code_of_method2;
   }
@@ -153,13 +154,14 @@ _ZN6ClassBE (const int entry)
   module->json_code = NULL;
   module->json_status = NULL;
 
-  module->oo_class_factory_obj = cob_init_factory_obj("ClassB", B_parent_classes,
-    B_parent_class_count, B_methods, B_method_count);
-  
-  module->oo_class_factory_obj->class_fields_count = B_class_fields_count;
-  module->oo_class_factory_obj->class_fields = &B_class_fields[0];
-  // module->oo_class_factory_obj->method_descriptors = method_names;
-  
+  if (!cob_init_factory_obj(module, "ClassB", B_parent_classes,
+    B_parent_class_count, B_methods, B_method_count, B_class_fields, B_class_fields_count)) {
+		return -1;
+	}
+
+	l_instance_data_initializers:;
+	/* TODO: Do instance data initialization */
+
   
   /* Initialize WORKING-STORAGE */
   /* initialize field RETURN-CODE */
@@ -171,6 +173,10 @@ _ZN6ClassBE (const int entry)
   /* Pop module stack */
   /* TODO: Decide when the module is freed for classes. */
   cob_module_leave (module);
+
+  l_code_of_A_method_1:;
+  	printf ("Called A_method_1\n");
+	
 
   return 0;
 }
@@ -428,13 +434,13 @@ prog_ (const int entry)
   obj_A_2 = cob_load_class ("ClassA");
 
   assert(obj_A_1 == obj_A_2);
-  printf ("Same factory objects for class A...\n");
+  printf ("\nSame factory objects for class A...\n");
 
-  printf ("\nobj_A->class_name: %s\n", obj_A_1->class_name);
+  printf ("\nobj_A_1->class_name: %s\n", obj_A_1->class_name);
   printf ("obj_A_1->parent_classes->class_name: %s\n",
          obj_A_1->parent_class_factory_objs->class_name);
 
-  printf ("Methods for %s:\n", obj_A_1->class_name);
+  printf ("\nMethods for %s:\n", obj_A_1->class_name);
   for (int method_idx = 0; method_idx < obj_A_1->methods_count; ++method_idx) {
     printf ("  %s\n", obj_A_1->method_descriptors[method_idx].method_name);
   }
