@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2003-2012, 2014-2023 Free Software Foundation, Inc.
+   Copyright (C) 2003-2012, 2014-2026 Free Software Foundation, Inc.
    Written by Keisuke Nishida, Roger While, Simon Sobisch, Ron Norman
 
    This file is part of GnuCOBOL.
@@ -19,7 +19,6 @@
 */
 
 
-#include "common.h"
 #include "config.h"
 
 #ifndef	_GNU_SOURCE

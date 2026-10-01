@@ -1,7 +1,7 @@
 /*
-   Copyright (C) 2002-2012, 2014-2020, 2022-2025 Free Software Foundation, Inc.
+   Copyright (C) 2003-2012, 2014-2026 Free Software Foundation, Inc.
    Written by Keisuke Nishida, Roger While, Simon Sobisch, Ron Norman,
-   Edwart Hard
+   Edwart Hard. Nicolas Berthier, Saurabh Kumar
 
    This file is part of GnuCOBOL.
 
@@ -232,7 +232,7 @@ int cob_init_factory_obj(cob_module *module, const char *class_name,
   }
 
   for (int i = 0; i < parent_classes_count; i++) {
-    parent_class_factory_objs[i] = cob_load_class(parent_class_names[i]);
+    parent_class_factory_objs[i] = cob_load_class(parent_class_names[i])->factory_obj;
     inherited_methods_count += parent_class_factory_objs[i]->methods_count;
   }
   class_obj->parent_class_factory_objs =
@@ -265,7 +265,7 @@ int cob_init_factory_obj(cob_module *module, const char *class_name,
   return 0;
 }
 
-cob_factory_obj*
+cob_oo_class_obj*
 cob_load_class (const char* class_name) 
 {
 	char 				class_name_[COB_SMALL_BUFF];
@@ -273,7 +273,7 @@ cob_load_class (const char* class_name)
 	cob_factory_obj* 	class_obj = NULL;
 	cob_factory_obj* 	parent_classes[] = {};
 
-	const size_t 			class_name_len = strlen(class_name);
+	const size_t 		class_name_len = strlen(class_name);
 
 	if (!factory_obj_map) init_factory_obj_map();
 
@@ -302,17 +302,26 @@ cob_load_class (const char* class_name)
 		print_factory_obj_map ();
 	}
 
-	return class_obj;
+	return cob_init_obj (class_name);
 }
 
-// int cob_new_obj (cob_field this, cob_factory_obj* class) {
-// 	/* this->data = (struct cob_obj*)malloc (data of size computed based on class
-// 	   and its parents) */
-// 	this->data->obj_class = class;
-// 	/* TODO: tink about how to pass this->data->instance_data to the
-// 	   instance intializer; */
-// 	class->whole_function (1);
-// 	/* TODO: call `whole_function` with appropriate class data indices for
-// 	   all superclasses (reachable via class->parent_...). */
-// 	return 0;
-// }
+cob_oo_class_obj* 
+cob_init_obj (const char* class_name) {
+	cob_oo_class_obj* obj = (cob_oo_class_obj *)cob_malloc(sizeof(cob_oo_class_obj));
+	obj->factory_obj = find_factory_obj (class_name);
+
+	return obj;
+}
+
+int 
+cob_new_obj (cob_field* this, cob_factory_obj* class) {
+	/* this->data = (struct cob_obj*)malloc (data of size computed based on class
+	   and its parents) */
+	this->data = cob_malloc (this->size);
+	// /* TODO: tink about how to pass this->data->instance_data to the
+	//    instance intializer; */
+	// class->whole_function (1);
+	// /* TODO: call `whole_function` with appropriate class data indices for
+	//    all superclasses (reachable via class->parent_...). */
+	return 0;
+}

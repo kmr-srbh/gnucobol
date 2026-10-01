@@ -346,16 +346,16 @@ prog_ (const int entry)
   /* Line: 21        : DISPLAY            : prog2.cob */
   cob_nop ();
   /* currently using index positions like 0 */
-  cob_display (0, 1, 1, obj_A_1->class_fields[0].class_field);
+  cob_display (0, 1, 1, obj_A_1->factory_obj->class_fields[0].class_field);
 
   /* Modify factory data */
-  memcpy (obj_A_1->class_fields[0].class_field->data, "Hello, world!         ", 22);
+  memcpy (obj_A_1->factory_obj->class_fields[0].class_field->data, "Hello, world!         ", 22);
 
   /* Print new factory data from obj_A_1 */
-  cob_display (0, 1, 1, obj_A_1->class_fields[0].class_field);
+  cob_display (0, 1, 1, obj_A_1->factory_obj->class_fields[0].class_field);
 
   /* Print factory data from obj_A_2 */
-  cob_display (0, 1, 1, obj_A_2->class_fields[0].class_field);
+  cob_display (0, 1, 1, obj_A_2->factory_obj->class_fields[0].class_field);
 
   // func_SayHelloFromA.funcvoid = cob_resolve_func("SayHelloFromClassA");
   // func_SayHelloFromA.funcnull(&cob_dyn_0, 1, NULL);
@@ -433,16 +433,19 @@ prog_ (const int entry)
   obj_A_1 = cob_load_class ("ClassA");
   obj_A_2 = cob_load_class ("ClassA");
 
-  assert(obj_A_1 == obj_A_2);
+  assert(obj_A_1->factory_obj == obj_A_2->factory_obj);
   printf ("\nSame factory objects for class A...\n");
 
-  printf ("\nobj_A_1->class_name: %s\n", obj_A_1->class_name);
-  printf ("obj_A_1->parent_classes->class_name: %s\n",
-         obj_A_1->parent_class_factory_objs->class_name);
+  assert(obj_A_1 != obj_A_2);
+  printf ("\nDifferent class objects overall for class A...\n");
 
-  printf ("\nMethods for %s:\n", obj_A_1->class_name);
-  for (int method_idx = 0; method_idx < obj_A_1->methods_count; ++method_idx) {
-    printf ("  %s\n", obj_A_1->method_descriptors[method_idx].method_name);
+  printf ("\nobj_A_1->class_name: %s\n", obj_A_1->factory_obj->class_name);
+  printf ("obj_A_1->parent_classes->class_name: %s\n",
+         obj_A_1->factory_obj->parent_class_factory_objs->class_name);
+
+  printf ("\nMethods for %s:\n", obj_A_1->factory_obj->class_name);
+  for (int method_idx = 0; method_idx < obj_A_1->factory_obj->methods_count; ++method_idx) {
+    printf ("  %s\n", obj_A_1->factory_obj->method_descriptors[method_idx].method_name);
   }
 
   

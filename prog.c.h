@@ -34,17 +34,17 @@ static const cob_field_attr a_1 =	{0x21,   0,   0, 0x1000, NULL};
 static const cob_field_attr a_2 =	{0x10,   2,   0, 0x0000, NULL};
 static const cob_field_attr a_3 =	{0x10,   2,   0, 0x1000, NULL};
 
+static const cob_field_attr a_4 =	{0x10,   1,   0, 0x1000, NULL};
+
 
 /* Constants */
 static const cob_field c_1	= {13, (cob_u8_ptr)"Hello, world!", &a_1};
 static const cob_field c_2	= {2, (cob_u8_ptr)"10", &a_3};
 static const cob_field c_3	= {2, (cob_u8_ptr)"12", &a_3};
 
-/* TypeInfo for class */
-// static TypeInfo TI_MyClass = {"MyClass", "MySuperClass"}; // field 2 is for searching the parent class and loading it
-
-/* VTable for class, should be static */
-// vtable_MyClass[N+1] = [&TI_MyClass, func_ptr_to_function_1, func_ptr_to_function_N];
+/* Instance variables for class ClassA */
+static const cob_field c_4	= {1, NULL, &a_4}; /* A PIC X */
+static const cob_field c_5	= {2, NULL, &a_3}; /* B PIC XX */
 
 
 #define cob_nop	if (!module) cob_nop

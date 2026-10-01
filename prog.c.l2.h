@@ -7,8 +7,8 @@
 
 /* Program local variables for 'prog' */
 
-cob_factory_obj* obj_A_1;
-cob_factory_obj* obj_A_2;
+cob_oo_class_obj* obj_A_1;
+cob_oo_class_obj* obj_A_2;
 
 
 /* LINKAGE SECTION (Items not referenced by USING clause) */
